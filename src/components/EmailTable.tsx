@@ -7,9 +7,23 @@ interface EmailTableProps {
   sortField: keyof Email;
   sortDirection: 'asc' | 'desc';
   onSort: (field: keyof Email) => void;
+  selectedIds: Set<string>;
+  onToggleEmail: (id: string) => void;
+  onToggleAll: () => void;
+  allSelected: boolean;
 }
 
-export function EmailTable({ emails, onEmailClick, sortField, sortDirection, onSort }: EmailTableProps) {
+export function EmailTable({
+  emails,
+  onEmailClick,
+  sortField,
+  sortDirection,
+  onSort,
+  selectedIds,
+  onToggleEmail,
+  onToggleAll,
+  allSelected,
+}: EmailTableProps) {
   const getStatusBadgeColor = (status: EmailStatus) => {
     switch (status) {
       case 'sent':
@@ -42,7 +56,11 @@ export function EmailTable({ emails, onEmailClick, sortField, sortDirection, onS
       className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
     >
       <span>{label}</span>
-      <ArrowUpDown className={`h-4 w-4 ${sortField === field ? 'text-blue-600' : 'text-gray-400'}`} />
+      <ArrowUpDown
+        className={`h-4 w-4 transition-transform ${
+          sortField === field ? 'text-blue-600' : 'text-gray-400'
+        } ${sortField === field && sortDirection === 'asc' ? 'rotate-180' : ''}`}
+      />
     </button>
   );
 
@@ -52,6 +70,15 @@ export function EmailTable({ emails, onEmailClick, sortField, sortDirection, onS
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={() => onToggleAll()}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  aria-label="Select all emails on this page"
+                />
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                 <SortButton field="company" label="Company" />
               </th>
@@ -87,13 +114,22 @@ export function EmailTable({ emails, onEmailClick, sortField, sortDirection, onS
           <tbody className="bg-white divide-y divide-gray-200">
             {emails.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={11} className="px-6 py-8 text-center text-gray-500">
                   No emails found. Start by triggering a search campaign.
                 </td>
               </tr>
             ) : (
               emails.map((email) => (
                 <tr key={email.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(email.id)}
+                      onChange={() => onToggleEmail(email.id)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      aria-label={`Select email ${email.email}`}
+                    />
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {email.company}
                   </td>

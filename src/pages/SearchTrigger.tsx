@@ -1,17 +1,17 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { supabase } from '../lib/supabase';
-import axios from 'axios';
-import { Search, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { useState, useEffect, FormEvent } from "react";
+import { supabase } from "../lib/supabase";
+import axios from "axios";
+import { Search, Send, CheckCircle, AlertCircle, Loader } from "lucide-react";
 
 export function SearchTrigger() {
-  const [region, setRegion] = useState('');
-  const [industry, setIndustry] = useState('');
-  const [keywords, setKeywords] = useState('');
-  const [campaignName, setCampaignName] = useState('');
-  const [webhookUrl, setWebhookUrl] = useState('');
+  const [region, setRegion] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [campaignName, setCampaignName] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'running' | 'completed' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<"idle" | "running" | "completed" | "error">("idle");
+  const [message, setMessage] = useState("");
   const [loadingSettings, setLoadingSettings] = useState(true);
 
   useEffect(() => {
@@ -21,12 +21,12 @@ export function SearchTrigger() {
   const loadSettings = async () => {
     try {
       setLoadingSettings(true);
-      const { data, error } = await supabase
-        .from('settings')
-        .select('webhook_url')
+      const { data, error } = await (supabase as any)
+        .from("settings")
+        .select("webhook_url")
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
@@ -34,7 +34,7 @@ export function SearchTrigger() {
         setWebhookUrl(data.webhook_url);
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error("Error loading settings:", error);
     } finally {
       setLoadingSettings(false);
     }
@@ -42,20 +42,20 @@ export function SearchTrigger() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setStatus('running');
-    setMessage('');
+    setStatus("running");
+    setMessage("");
     setLoading(true);
 
     if (!webhookUrl) {
-      setStatus('error');
-      setMessage('Please configure your webhook URL in Settings first.');
+      setStatus("error");
+      setMessage("Please configure your webhook URL in Settings first.");
       setLoading(false);
       return;
     }
 
     try {
       const keywordArray = keywords
-        .split(',')
+        .split(",")
         .map((k) => k.trim())
         .filter((k) => k.length > 0);
 
@@ -63,7 +63,7 @@ export function SearchTrigger() {
         region,
         industry,
         keywords: keywordArray,
-        campaign: campaignName || 'Unnamed Campaign',
+        campaign: campaignName || "Unnamed Campaign",
       };
 
       const response = await axios.post(webhookUrl, payload, {
@@ -71,39 +71,39 @@ export function SearchTrigger() {
       });
 
       if (response.status === 200 || response.status === 201) {
-        setStatus('completed');
+        setStatus("completed");
         setMessage(
           `Successfully triggered workflow! ${
-            response.data?.message || 'The n8n workflow is now processing your search.'
+            response.data?.message || "The n8n workflow is now processing your search."
           }`
         );
 
-        setRegion('');
-        setIndustry('');
-        setKeywords('');
-        setCampaignName('');
+        setRegion("");
+        setIndustry("");
+        setKeywords("");
+        setCampaignName("");
       } else {
-        setStatus('error');
-        setMessage('Webhook returned an unexpected status. Please check your n8n workflow.');
+        setStatus("error");
+        setMessage("Webhook returned an unexpected status. Please check your n8n workflow.");
       }
     } catch (error) {
-      setStatus('error');
+      setStatus("error");
       if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNABORTED') {
-          setMessage('Request timed out. Please check if your webhook URL is correct.');
+        if (error.code === "ECONNABORTED") {
+          setMessage("Request timed out. Please check if your webhook URL is correct.");
         } else if (error.response) {
           setMessage(
             `Webhook error: ${error.response.status} - ${
-              error.response.data?.message || 'Unknown error'
+              error.response.data?.message || "Unknown error"
             }`
           );
         } else if (error.request) {
-          setMessage('Could not reach the webhook URL. Please verify it is accessible.');
+          setMessage("Could not reach the webhook URL. Please verify it is accessible.");
         } else {
           setMessage(`Error: ${error.message}`);
         }
       } else {
-        setMessage('An unexpected error occurred. Please try again.');
+        setMessage("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -204,13 +204,14 @@ export function SearchTrigger() {
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Webhook URL not configured</p>
                 <p className="mt-1">
-                  Please configure your n8n webhook URL in the Settings page before triggering a search.
+                  Please configure your n8n webhook URL in the Settings page before triggering a
+                  search.
                 </p>
               </div>
             </div>
           )}
 
-          {status === 'running' && (
+          {status === "running" && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start">
               <Loader className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5 animate-spin" />
               <div className="text-sm text-blue-800">
@@ -220,7 +221,7 @@ export function SearchTrigger() {
             </div>
           )}
 
-          {status === 'completed' && (
+          {status === "completed" && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start">
               <CheckCircle className="h-5 w-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-green-800">
@@ -230,7 +231,7 @@ export function SearchTrigger() {
             </div>
           )}
 
-          {status === 'error' && (
+          {status === "error" && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
               <AlertCircle className="h-5 w-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-red-800">
@@ -298,8 +299,8 @@ export function SearchTrigger() {
           <div className="text-sm text-blue-800">
             <p className="font-medium">Pro Tip</p>
             <p className="mt-1">
-              Use specific keywords and narrower regions for better targeting. You can run multiple campaigns
-              with different parameters to test what works best.
+              Use specific keywords and narrower regions for better targeting. You can run multiple
+              campaigns with different parameters to test what works best.
             </p>
           </div>
         </div>

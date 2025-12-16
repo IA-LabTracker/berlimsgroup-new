@@ -1,16 +1,17 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { Save, AlertCircle, CheckCircle, Webhook, FileText } from 'lucide-react';
+import { useState, useEffect, FormEvent } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Save, AlertCircle, CheckCircle, Webhook, FileText } from "lucide-react";
+import type { Settings as SettingsType } from "../types/database";
 
-export function Settings() {
+export function SettingsPage() {
   const { user } = useAuth();
-  const [webhookUrl, setWebhookUrl] = useState('');
-  const [emailTemplate, setEmailTemplate] = useState('');
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [emailTemplate, setEmailTemplate] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (user) {
@@ -19,26 +20,32 @@ export function Settings() {
   }, [user]);
 
   const loadSettings = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('user_id', user?.id)
+        .from("settings")
+        .select("*")
+        .eq("user_id", user.id)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
       if (data) {
-        setWebhookUrl(data.webhook_url || '');
-        setEmailTemplate(data.email_template || '');
+        const settings = data as SettingsType;
+        setWebhookUrl(settings.webhook_url || "");
+        setEmailTemplate(settings.email_template || "");
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      setStatus('error');
-      setMessage('Failed to load settings. Please try again.');
+      console.error("Error loading settings:", error);
+      setStatus("error");
+      setMessage("Failed to load settings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -46,30 +53,37 @@ export function Settings() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setStatus('idle');
-    setMessage('');
+    setStatus("idle");
+    setMessage("");
     setSaving(true);
+
+    if (!user?.id) {
+      setStatus("error");
+      setMessage("User not found. Please log in again.");
+      setSaving(false);
+      return;
+    }
 
     try {
       const { data: existingSettings } = await supabase
-        .from('settings')
-        .select('id')
-        .eq('user_id', user?.id)
+        .from("settings")
+        .select("id")
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (existingSettings) {
-        const { error } = await supabase
-          .from('settings')
+        const { error } = await (supabase as any)
+          .from("settings")
           .update({
             webhook_url: webhookUrl,
             email_template: emailTemplate,
           })
-          .eq('user_id', user?.id);
+          .eq("user_id", user.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('settings').insert({
-          user_id: user?.id,
+        const { error } = await (supabase as any).from("settings").insert({
+          user_id: user.id,
           webhook_url: webhookUrl,
           email_template: emailTemplate,
         });
@@ -77,17 +91,17 @@ export function Settings() {
         if (error) throw error;
       }
 
-      setStatus('success');
-      setMessage('Settings saved successfully!');
+      setStatus("success");
+      setMessage("Settings saved successfully!");
 
       setTimeout(() => {
-        setStatus('idle');
-        setMessage('');
+        setStatus("idle");
+        setMessage("");
       }, 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
-      setStatus('error');
-      setMessage('Failed to save settings. Please try again.');
+      console.error("Error saving settings:", error);
+      setStatus("error");
+      setMessage("Failed to save settings. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -105,13 +119,11 @@ export function Settings() {
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
-          Configure your webhook URL and email templates
-        </p>
+        <p className="mt-2 text-gray-600">Configure your webhook URL and email templates</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {status === 'success' && (
+        {status === "success" && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start">
             <CheckCircle className="h-5 w-5 text-green-600 mr-3 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-green-800">
@@ -120,7 +132,7 @@ export function Settings() {
           </div>
         )}
 
-        {status === 'error' && (
+        {status === "error" && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
             <AlertCircle className="h-5 w-5 text-red-600 mr-3 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-red-800">
@@ -150,12 +162,15 @@ export function Settings() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <p className="mt-2 text-xs text-gray-500">
-                Enter your n8n webhook URL. This is where search parameters will be sent when you trigger a campaign.
+                Enter your n8n webhook URL. This is where search parameters will be sent when you
+                trigger a campaign.
               </p>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-900 mb-2">How to get your webhook URL:</h3>
+              <h3 className="text-sm font-medium text-blue-900 mb-2">
+                How to get your webhook URL:
+              </h3>
               <ol className="space-y-1 text-xs text-blue-800 list-decimal list-inside">
                 <li>Open your n8n workflow editor</li>
                 <li>Add a "Webhook" trigger node</li>
@@ -168,7 +183,7 @@ export function Settings() {
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-900 mb-2">Expected webhook payload:</h3>
               <pre className="text-xs text-gray-700 bg-white p-3 rounded border border-gray-200 overflow-x-auto">
-{`{
+                {`{
   "region": "Brazil",
   "industry": "Tech",
   "keywords": ["automation", "CRM"],
@@ -187,7 +202,10 @@ export function Settings() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="emailTemplate" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="emailTemplate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Default Email Template
               </label>
               <textarea
@@ -206,7 +224,8 @@ Your Name"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
               />
               <p className="mt-2 text-xs text-gray-500">
-                Create your default email template. You can use variables like {`{{company}}`}, {`{{industry}}`}, and {`{{region}}`} which will be replaced with actual values.
+                Create your default email template. You can use variables like {`{{company}}`},{" "}
+                {`{{industry}}`}, and {`{{region}}`} which will be replaced with actual values.
               </p>
             </div>
 
@@ -214,16 +233,20 @@ Your Name"
               <h3 className="text-sm font-medium text-yellow-900 mb-2">Available variables:</h3>
               <div className="grid grid-cols-2 gap-2 text-xs text-yellow-800">
                 <div>
-                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{company}}`}</code> - Company name
+                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{company}}`}</code>{" "}
+                  - Company name
                 </div>
                 <div>
-                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{email}}`}</code> - Recipient email
+                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{email}}`}</code>{" "}
+                  - Recipient email
                 </div>
                 <div>
-                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{region}}`}</code> - Region
+                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{region}}`}</code>{" "}
+                  - Region
                 </div>
                 <div>
-                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{industry}}`}</code> - Industry
+                  <code className="bg-white px-2 py-1 rounded border border-yellow-300">{`{{industry}}`}</code>{" "}
+                  - Industry
                 </div>
               </div>
             </div>
@@ -237,7 +260,7 @@ Your Name"
             className="px-6 py-3 bg-blue-600 border border-transparent rounded-lg text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
           >
             <Save className="h-5 w-5 mr-2" />
-            {saving ? 'Saving...' : 'Save Settings'}
+            {saving ? "Saving..." : "Save Settings"}
           </button>
         </div>
       </form>

@@ -1,12 +1,12 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { Layout } from './components/Layout';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
-import { Dashboard } from './pages/Dashboard';
-import { SearchTrigger } from './pages/SearchTrigger';
-import { Settings } from './pages/Settings';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Layout } from "./components/Layout";
+import { Login } from "./pages/Login";
+import { Signup } from "./pages/Signup";
+import { Dashboard } from "./pages/Dashboard";
+import { SearchTrigger } from "./pages/SearchTrigger";
+import { SettingsPage } from "./pages/Settings";
 
 function App() {
   return (
@@ -40,7 +40,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <Layout>
-                  <Settings />
+                  <SettingsPage />
                 </Layout>
               </ProtectedRoute>
             }

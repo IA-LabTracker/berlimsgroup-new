@@ -35,12 +35,18 @@ export interface Database {
         Row: Email;
         Insert: Omit<Email, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Email, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
       settings: {
         Row: Settings;
         Insert: Omit<Settings, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Settings, 'id' | 'created_at' | 'updated_at'>>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }

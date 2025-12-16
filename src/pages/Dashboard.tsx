@@ -5,6 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { KPICard } from '../components/KPICard';
 import { EmailFilters } from '../components/EmailFilters';
 import { EmailTable } from '../components/EmailTable';
+import { EmailActionsMenu } from '../components/EmailActionsMenu';
+import { useEmailSelection } from '../hooks/useEmailSelection';
+import { triggerInitialEmails } from '../lib/api';
 import { Mail, MessageSquare, Flame, TrendingUp } from 'lucide-react';
 
 export function Dashboard() {
@@ -25,6 +28,12 @@ export function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<{
+    type: 'success' | 'error' | 'info';
+    message: string;
+  } | null>(null);
+
   useEffect(() => {
     if (user) {
       fetchEmails();
@@ -34,6 +43,9 @@ export function Dashboard() {
   useEffect(() => {
     filterAndSortEmails();
   }, [emails, statusFilter, classificationFilter, campaignFilter, searchQuery, sortField, sortDirection]);
+
+  const { selectedIds, selectedEmails, isAllSelected, toggleEmailSelection, toggleSelectAllVisible, clearSelection } =
+    useEmailSelection(filteredEmails);
 
   const fetchEmails = async () => {
     try {
@@ -119,6 +131,36 @@ export function Dashboard() {
   );
   const totalPages = Math.ceil(filteredEmails.length / itemsPerPage);
 
+  const handleSendInitialEmails = async () => {
+    if (!selectedEmails.length || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      setActionFeedback({ type: 'info', message: 'Triggering initial email webhook...' });
+      await triggerInitialEmails(selectedEmails.map((email) => email.email));
+      setActionFeedback({
+        type: 'success',
+        message: `Webhook triggered for ${selectedEmails.length} recipient${selectedEmails.length > 1 ? 's' : ''}.`,
+      });
+      clearSelection();
+    } catch (error) {
+      console.error('Error sending initial emails:', error);
+      setActionFeedback({
+        type: 'error',
+        message: 'Failed to trigger webhook. Please try again.',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleWebhookTrigger = () => {
+    setActionFeedback({
+      type: 'info',
+      message: 'Additional webhook actions will be available soon.',
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -152,12 +194,40 @@ export function Dashboard() {
         setSearchQuery={setSearchQuery}
       />
 
+      {selectedEmails.length > 0 && (
+        <EmailActionsMenu
+          selectedCount={selectedEmails.length}
+          onSendInitialEmail={handleSendInitialEmails}
+          onWebhookTrigger={handleWebhookTrigger}
+          onClear={clearSelection}
+          loading={actionLoading}
+          feedback={actionFeedback}
+        />
+      )}
+      {actionFeedback && selectedEmails.length === 0 && (
+        <div
+          className={`text-sm px-3 py-2 rounded-md border ${
+            actionFeedback.type === 'success'
+              ? 'bg-green-50 text-green-800 border-green-100'
+              : actionFeedback.type === 'error'
+                ? 'bg-red-50 text-red-800 border-red-100'
+                : 'bg-blue-50 text-blue-800 border-blue-100'
+          }`}
+        >
+          {actionFeedback.message}
+        </div>
+      )}
+
       <EmailTable
         emails={paginatedEmails}
         onEmailClick={setSelectedEmail}
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
+        selectedIds={selectedIds}
+        onToggleEmail={toggleEmailSelection}
+        onToggleAll={() => toggleSelectAllVisible(paginatedEmails)}
+        allSelected={isAllSelected(paginatedEmails)}
       />
 
       {totalPages > 1 && (
