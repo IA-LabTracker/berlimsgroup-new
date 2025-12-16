@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-const INITIAL_EMAIL_WEBHOOK = 'https://your-n8n-instance.com/webhook/send-initial-email';
+const INITIAL_EMAIL_WEBHOOK = process.env.VITE_WEBHOOK_N8N || "";
 
 export async function triggerInitialEmails(emails: string[]) {
   const { data } = await axios.post(INITIAL_EMAIL_WEBHOOK, { emails });
