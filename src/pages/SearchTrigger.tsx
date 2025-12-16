@@ -21,10 +21,7 @@ export function SearchTrigger() {
   const loadSettings = async () => {
     try {
       setLoadingSettings(true);
-      const { data, error } = await (supabase as any)
-        .from("settings")
-        .select("webhook_url")
-        .maybeSingle();
+      const { data, error } = await supabase.from("settings").select("webhook_url").maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         throw error;

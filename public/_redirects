@@ -1,0 +1,8 @@
+# Redirect rules for SPA routing
+# This ensures that all routes are handled by React Router
+
+# API routes (if you add them later) - should be excluded from SPA routing
+/api/* /api/:splat 200
+
+# All other routes should redirect to index.html for client-side routing
+/* /index.html 200

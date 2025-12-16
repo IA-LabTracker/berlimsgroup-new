@@ -23,7 +23,7 @@ export function EmailDetailModal({ email, onClose, onUpdate }: EmailDetailModalP
     setSaving(true);
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("emails")
         .update({
           lead_classification: classification,

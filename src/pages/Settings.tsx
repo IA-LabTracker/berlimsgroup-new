@@ -72,7 +72,7 @@ export function SettingsPage() {
         .maybeSingle();
 
       if (existingSettings) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("settings")
           .update({
             webhook_url: webhookUrl,
@@ -82,7 +82,7 @@ export function SettingsPage() {
 
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from("settings").insert({
+        const { error } = await supabase.from("settings").insert({
           user_id: user.id,
           webhook_url: webhookUrl,
           email_template: emailTemplate,

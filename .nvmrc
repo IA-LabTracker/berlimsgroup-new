@@ -1,0 +1,5 @@
+# Arquivo de configuração para Node.js no Vercel
+
+# Garantindo compatibilidade com a versão mais recente do Node
+
+18.x
