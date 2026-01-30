@@ -4,7 +4,12 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
+  "devCommand": "vite --port 3001",
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

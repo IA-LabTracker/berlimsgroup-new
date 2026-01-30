@@ -1,12 +1,13 @@
 import { useState, useEffect, FormEvent } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { Save, AlertCircle, CheckCircle, Webhook, FileText } from "lucide-react";
+import { Save, AlertCircle, CheckCircle, Webhook, FileText, Linkedin } from "lucide-react";
 import type { Settings as SettingsType } from "../types/database";
 
 export function SettingsPage() {
   const { user } = useAuth();
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [linkedinWebhookUrl, setLinkedinWebhookUrl] = useState("");
   const [emailTemplate, setEmailTemplate] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,6 +41,7 @@ export function SettingsPage() {
       if (data) {
         const settings = data as SettingsType;
         setWebhookUrl(settings.webhook_url || "");
+        setLinkedinWebhookUrl(settings.linkedin_webhook_url || "");
         setEmailTemplate(settings.email_template || "");
       }
     } catch (error) {
@@ -65,31 +67,19 @@ export function SettingsPage() {
     }
 
     try {
-      const { data: existingSettings } = await supabase
-        .from("settings")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const settingsData = {
+        user_id: user.id,
+        webhook_url: webhookUrl,
+        email_template: emailTemplate,
+        linkedin_webhook_url: linkedinWebhookUrl,
+      };
 
-      if (existingSettings) {
-        const { error } = await supabase
-          .from("settings")
-          .update({
-            webhook_url: webhookUrl,
-            email_template: emailTemplate,
-          })
-          .eq("user_id", user.id);
+      // @ts-expect-error Supabase types don't resolve upsert for manually defined schemas
+      const { error } = await supabase.from("settings").upsert(settingsData, {
+        onConflict: "user_id",
+      });
 
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("settings").insert({
-          user_id: user.id,
-          webhook_url: webhookUrl,
-          email_template: emailTemplate,
-        });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       setStatus("success");
       setMessage("Settings saved successfully!");
@@ -249,6 +239,52 @@ Your Name"
                   - Industry
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+          <div className="flex items-center mb-6">
+            <Linkedin className="h-6 w-6 text-blue-600 mr-2" />
+            <h2 className="text-xl font-semibold text-gray-900">LinkedIn Campaign Webhook</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="linkedinWebhookUrl"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                LinkedIn Webhook URL
+              </label>
+              <input
+                type="url"
+                id="linkedinWebhookUrl"
+                value={linkedinWebhookUrl}
+                onChange={(e) => setLinkedinWebhookUrl(e.target.value)}
+                placeholder="https://your-n8n-instance.com/webhook/linkedin-campaign"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="mt-2 text-xs text-gray-500">
+                n8n webhook URL that will receive LinkedIn campaign data (leads, template, account
+                ID).
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-2">Expected webhook payload:</h3>
+              <pre className="text-xs text-gray-700 bg-white p-3 rounded border border-gray-200 overflow-x-auto">
+                {`{
+  "userId": "abc-123",
+  "linkedinAccountId": "t5XY4yQzR9...",
+  "leads": [
+    { "firstName": "João", "company": "Google", ... }
+  ],
+  "messageTemplate": "Olá {{firstName}}...",
+  "delaySeconds": 90,
+  "campaignName": "My Campaign"
+}`}
+              </pre>
             </div>
           </div>
         </div>

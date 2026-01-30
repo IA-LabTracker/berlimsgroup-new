@@ -1,19 +1,19 @@
-import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Mail, AlertCircle } from 'lucide-react';
+import { useState, FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Mail, AlertCircle } from "lucide-react";
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     const { error } = await signIn(email, password);
@@ -22,7 +22,7 @@ export function Login() {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/');
+      navigate("/");
     }
   };
 
@@ -86,13 +86,16 @@ export function Login() {
             disabled={loading}
             className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+              Don't have an account?{" "}
+              <Link
+                to="/signup"
+                className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+              >
                 Sign up
               </Link>
             </p>
