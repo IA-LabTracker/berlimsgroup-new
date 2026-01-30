@@ -7,6 +7,7 @@ import { Signup } from "./pages/Signup";
 import { Dashboard } from "./pages/Dashboard";
 import { SearchTrigger } from "./pages/SearchTrigger";
 import { SettingsPage } from "./pages/Settings";
+import { LinkedInCampaign } from "./pages/LinkedInCampaign";
 
 function App() {
   return (
@@ -41,6 +42,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <SettingsPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/linkedin"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <LinkedInCampaign />
                 </Layout>
               </ProtectedRoute>
             }

@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { Mail, Search, Settings, LogOut, BarChart3 } from 'lucide-react';
+import { ReactNode } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Mail, Search, Settings, LogOut, BarChart3, Linkedin } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,13 +14,14 @@ export function Layout({ children }: LayoutProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/login');
+    navigate("/login");
   };
 
   const navItems = [
-    { path: '/', icon: BarChart3, label: 'Dashboard' },
-    { path: '/search', icon: Search, label: 'Search & Trigger' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: "/", icon: BarChart3, label: "Dashboard" },
+    { path: "/search", icon: Search, label: "Search & Trigger" },
+    { path: "/linkedin", icon: Linkedin, label: "LinkedIn" },
+    { path: "/settings", icon: Settings, label: "Settings" },
   ];
 
   return (
@@ -43,8 +44,8 @@ export function Layout({ children }: LayoutProps) {
                       to={item.path}
                       className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                         isActive
-                          ? 'border-blue-500 text-gray-900'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                          ? "border-blue-500 text-gray-900"
+                          : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                       }`}
                     >
                       <Icon className="h-4 w-4 mr-2" />
@@ -67,9 +68,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );
 }

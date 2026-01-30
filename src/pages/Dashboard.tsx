@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Email, EmailStatus, LeadClassification } from '../types/database';
-import { useAuth } from '../contexts/AuthContext';
-import { KPICard } from '../components/KPICard';
-import { EmailFilters } from '../components/EmailFilters';
-import { EmailTable } from '../components/EmailTable';
-import { EmailActionsMenu } from '../components/EmailActionsMenu';
-import { useEmailSelection } from '../hooks/useEmailSelection';
-import { triggerInitialEmails } from '../lib/api';
-import { Mail, MessageSquare, Flame, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+import { Email, EmailStatus, LeadClassification } from "../types/database";
+import { useAuth } from "../contexts/AuthContext";
+import { KPICard } from "../components/KPICard";
+import { EmailFilters } from "../components/EmailFilters";
+import { EmailTable } from "../components/EmailTable";
+import { EmailActionsMenu } from "../components/EmailActionsMenu";
+import { useEmailSelection } from "../hooks/useEmailSelection";
+import { triggerInitialEmails } from "../lib/api";
+import { Mail, MessageSquare, Flame, TrendingUp } from "lucide-react";
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -17,20 +17,22 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<EmailStatus | 'all'>('all');
-  const [classificationFilter, setClassificationFilter] = useState<LeadClassification | 'all'>('all');
-  const [campaignFilter, setCampaignFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<EmailStatus | "all">("all");
+  const [classificationFilter, setClassificationFilter] = useState<LeadClassification | "all">(
+    "all",
+  );
+  const [campaignFilter, setCampaignFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [sortField, setSortField] = useState<keyof Email>('date_sent');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortField, setSortField] = useState<keyof Email>("date_sent");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   const [actionLoading, setActionLoading] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<{
-    type: 'success' | 'error' | 'info';
+    type: "success" | "error" | "info";
     message: string;
   } | null>(null);
 
@@ -42,23 +44,37 @@ export function Dashboard() {
 
   useEffect(() => {
     filterAndSortEmails();
-  }, [emails, statusFilter, classificationFilter, campaignFilter, searchQuery, sortField, sortDirection]);
+  }, [
+    emails,
+    statusFilter,
+    classificationFilter,
+    campaignFilter,
+    searchQuery,
+    sortField,
+    sortDirection,
+  ]);
 
-  const { selectedIds, selectedEmails, isAllSelected, toggleEmailSelection, toggleSelectAllVisible, clearSelection } =
-    useEmailSelection(filteredEmails);
+  const {
+    selectedIds,
+    selectedEmails,
+    isAllSelected,
+    toggleEmailSelection,
+    toggleSelectAllVisible,
+    clearSelection,
+  } = useEmailSelection(filteredEmails);
 
   const fetchEmails = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('emails')
-        .select('*')
-        .order('date_sent', { ascending: false });
+        .from("emails")
+        .select("*")
+        .order("date_sent", { ascending: false });
 
       if (error) throw error;
       setEmails(data || []);
     } catch (error) {
-      console.error('Error fetching emails:', error);
+      console.error("Error fetching emails:", error);
     } finally {
       setLoading(false);
     }
@@ -67,17 +83,17 @@ export function Dashboard() {
   const filterAndSortEmails = () => {
     let filtered = [...emails];
 
-    if (statusFilter !== 'all') {
+    if (statusFilter !== "all") {
       filtered = filtered.filter((email) => email.status === statusFilter);
     }
 
-    if (classificationFilter !== 'all') {
+    if (classificationFilter !== "all") {
       filtered = filtered.filter((email) => email.lead_classification === classificationFilter);
     }
 
     if (campaignFilter) {
       filtered = filtered.filter((email) =>
-        email.campaign_name.toLowerCase().includes(campaignFilter.toLowerCase())
+        email.campaign_name.toLowerCase().includes(campaignFilter.toLowerCase()),
       );
     }
 
@@ -85,7 +101,7 @@ export function Dashboard() {
       filtered = filtered.filter(
         (email) =>
           email.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          email.email.toLowerCase().includes(searchQuery.toLowerCase())
+          email.email.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
@@ -96,14 +112,14 @@ export function Dashboard() {
       if (aValue === null || aValue === undefined) return 1;
       if (bValue === null || bValue === undefined) return -1;
 
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc'
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortDirection === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
 
@@ -113,21 +129,21 @@ export function Dashboard() {
 
   const handleSort = (field: keyof Email) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   const totalSent = emails.length;
-  const totalReplies = emails.filter((email) => email.status === 'replied').length;
-  const hotLeads = emails.filter((email) => email.lead_classification === 'hot').length;
-  const bounced = emails.filter((email) => email.status === 'bounced').length;
+  const totalReplies = emails.filter((email) => email.status === "replied").length;
+  const hotLeads = emails.filter((email) => email.lead_classification === "hot").length;
+  const bounced = emails.filter((email) => email.status === "bounced").length;
 
   const paginatedEmails = filteredEmails.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
   const totalPages = Math.ceil(filteredEmails.length / itemsPerPage);
 
@@ -136,18 +152,18 @@ export function Dashboard() {
 
     try {
       setActionLoading(true);
-      setActionFeedback({ type: 'info', message: 'Triggering initial email webhook...' });
+      setActionFeedback({ type: "info", message: "Triggering initial email webhook..." });
       await triggerInitialEmails(selectedEmails.map((email) => email.email));
       setActionFeedback({
-        type: 'success',
-        message: `Webhook triggered for ${selectedEmails.length} recipient${selectedEmails.length > 1 ? 's' : ''}.`,
+        type: "success",
+        message: `Webhook triggered for ${selectedEmails.length} recipient${selectedEmails.length > 1 ? "s" : ""}.`,
       });
       clearSelection();
     } catch (error) {
-      console.error('Error sending initial emails:', error);
+      console.error("Error sending initial emails:", error);
       setActionFeedback({
-        type: 'error',
-        message: 'Failed to trigger webhook. Please try again.',
+        type: "error",
+        message: "Failed to trigger webhook. Please try again.",
       });
     } finally {
       setActionLoading(false);
@@ -156,8 +172,8 @@ export function Dashboard() {
 
   const handleWebhookTrigger = () => {
     setActionFeedback({
-      type: 'info',
-      message: 'Additional webhook actions will be available soon.',
+      type: "info",
+      message: "Additional webhook actions will be available soon.",
     });
   };
 
@@ -178,7 +194,12 @@ export function Dashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard title="Total Sent" value={totalSent} icon={Mail} color="bg-blue-600" />
-        <KPICard title="Replies Received" value={totalReplies} icon={MessageSquare} color="bg-green-600" />
+        <KPICard
+          title="Replies Received"
+          value={totalReplies}
+          icon={MessageSquare}
+          color="bg-green-600"
+        />
         <KPICard title="Hot Leads" value={hotLeads} icon={Flame} color="bg-red-600" />
         <KPICard title="Bounced" value={bounced} icon={TrendingUp} color="bg-orange-600" />
       </div>
@@ -207,11 +228,11 @@ export function Dashboard() {
       {actionFeedback && selectedEmails.length === 0 && (
         <div
           className={`text-sm px-3 py-2 rounded-md border ${
-            actionFeedback.type === 'success'
-              ? 'bg-green-50 text-green-800 border-green-100'
-              : actionFeedback.type === 'error'
-                ? 'bg-red-50 text-red-800 border-red-100'
-                : 'bg-blue-50 text-blue-800 border-blue-100'
+            actionFeedback.type === "success"
+              ? "bg-green-50 text-green-800 border-green-100"
+              : actionFeedback.type === "error"
+                ? "bg-red-50 text-red-800 border-red-100"
+                : "bg-blue-50 text-blue-800 border-blue-100"
           }`}
         >
           {actionFeedback.message}
@@ -251,10 +272,11 @@ export function Dashboard() {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>{" "}
+                to{" "}
                 <span className="font-medium">
                   {Math.min(currentPage * itemsPerPage, filteredEmails.length)}
-                </span>{' '}
+                </span>{" "}
                 of <span className="font-medium">{filteredEmails.length}</span> results
               </p>
             </div>
@@ -275,8 +297,8 @@ export function Dashboard() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                         currentPage === pageNum
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                          : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
                       }`}
                     >
                       {pageNum}
@@ -307,4 +329,4 @@ export function Dashboard() {
   );
 }
 
-import { EmailDetailModal } from '../components/EmailDetailModal';
+import { EmailDetailModal } from "../components/EmailDetailModal";

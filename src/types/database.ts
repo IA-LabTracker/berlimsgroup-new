@@ -24,6 +24,8 @@ export interface Settings {
   user_id: string;
   webhook_url: string;
   email_template: string;
+  linkedin_account_id: string | null;
+  linkedin_webhook_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,9 +46,17 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 }
